@@ -1,0 +1,181 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Estructura del nodo para procesos (como en el pseudocódigo)
+struct Nodo {
+    int id;
+    string nombre;
+    int prioridad;
+    Nodo* siguiente;
+
+    Nodo(int i, string n, int p) : id(i), nombre(n), prioridad(p), siguiente(nullptr) {}
+};
+
+// Implementación básica de Lista Enlazada (Gestor de Procesos)
+class ListaProcesos {
+private:
+    Nodo* cabeza;
+    int contadorId;
+
+public:
+    ListaProcesos() : cabeza(nullptr), contadorId(1) {}
+
+    // Insertar proceso (como en el pseudocódigo)
+    void insertar(string nombre, int prioridad) {
+        Nodo* nuevo = new Nodo(contadorId++, nombre, prioridad);
+
+        if (!cabeza || prioridad > cabeza->prioridad) {
+            nuevo->siguiente = cabeza;
+            cabeza = nuevo;
+        } else {
+            Nodo* actual = cabeza;
+            while (actual->siguiente && prioridad <= actual->siguiente->prioridad) {
+                actual = actual->siguiente;
+            }
+            nuevo->siguiente = actual->siguiente;
+            actual->siguiente = nuevo;
+        }
+    }
+
+    // Eliminar proceso por ID
+    bool eliminar(int id) {
+        if (!cabeza) return false;
+
+        if (cabeza->id == id) {
+            Nodo* temp = cabeza;
+            cabeza = cabeza->siguiente;
+            delete temp;
+            return true;
+        }
+
+        Nodo* actual = cabeza;
+        while (actual->siguiente && actual->siguiente->id != id) {
+            actual = actual->siguiente;
+        }
+
+        if (actual->siguiente) {
+            Nodo* temp = actual->siguiente;
+            actual->siguiente = temp->siguiente;
+            delete temp;
+            return true;
+        }
+
+        return false;
+    }
+
+    // Mostrar todos los procesos
+    void mostrar() {
+        Nodo* actual = cabeza;
+        cout << "\n=== LISTA DE PROCESOS ===\n";
+        cout << "ID\tNombre\tPrioridad\n";
+        while (actual) {
+            cout << actual->id << "\t" << actual->nombre << "\t" << actual->prioridad << endl;
+            actual = actual->siguiente;
+        }
+    }
+};
+
+// Implementación básica de Cola de Prioridad (Planificador de CPU)
+class ColaCPU {
+private:
+    Nodo* frente;
+    Nodo* fin;
+
+public:
+    ColaCPU() : frente(nullptr), fin(nullptr) {}
+
+    // Encolar proceso
+    void encolar(Nodo* proc) {
+        if (!proc) return;
+
+        Nodo* nuevo = new Nodo(proc->id, proc->nombre, proc->prioridad);
+
+        if (!frente) {
+            frente = fin = nuevo;
+        } else {
+            fin->siguiente = nuevo;
+            fin = nuevo;
+        }
+    }
+
+    // Desencolar proceso
+    Nodo* desencolar() {
+        if (!frente) return nullptr;
+
+        Nodo* temp = frente;
+        frente = frente->siguiente;
+        if (!frente) fin = nullptr;
+
+        temp->siguiente = nullptr;
+        return temp;
+    }
+
+    // Mostrar cola
+    void mostrar() {
+        Nodo* actual = frente;
+        cout << "\n=== COLA DE CPU ===\n";
+        cout << "ID\tNombre\tPrioridad\n";
+        while (actual) {
+            cout << actual->id << "\t" << actual->nombre << "\t" << actual->prioridad << endl;
+            actual = actual->siguiente;
+        }
+    }
+};
+
+// Menú básico para demostración
+void mostrarMenu() {
+    cout << "\n=== MENU DEMOSTRACION ===\n";
+    cout << "1. Agregar proceso a lista\n";
+    cout << "2. Mostrar lista de procesos\n";
+    cout << "3. Agregar proceso a cola CPU\n";
+    cout << "4. Mostrar cola CPU\n";
+    cout << "5. Salir\n";
+    cout << "Seleccione una opcion: ";
+}
+
+int main() {
+    ListaProcesos lista;
+    ColaCPU cola;
+
+    int opcion, prioridad;
+    string nombre;
+
+    do {
+        mostrarMenu();
+        cin >> opcion;
+
+        switch(opcion) {
+            case 1:
+                cout << "Nombre del proceso: ";
+                cin.ignore();
+                getline(cin, nombre);
+                cout << "Prioridad (1-10): ";
+                cin >> prioridad;
+                lista.insertar(nombre, prioridad);
+                break;
+            case 2:
+                lista.mostrar();
+                break;
+            case 3:
+                lista.mostrar();
+                cout << "ID del proceso a encolar: ";
+                int id;
+                cin >> id;
+                // En una implementación completa buscaríamos el nodo
+                // Aquí simulamos que encontramos el proceso
+                cout << "Proceso agregado a cola CPU (simulación)\n";
+                break;
+            case 4:
+                cola.mostrar();
+                break;
+            case 5:
+                cout << "Saliendo...\n";
+                break;
+            default:
+                cout << "Opcion no valida!\n";
+        }
+    } while(opcion != 5);
+
+    return 0;
+}
