@@ -2,26 +2,31 @@
 #include <string>
 using namespace std;
 
-// Estructura del nodo para procesos (como en el pseudocódigo)
+// Estructura del nodo
 struct Nodo {
     int id;
     string nombre;
     int prioridad;
     Nodo* siguiente;
 
-    Nodo(int i, string n, int p) : id(i), nombre(n), prioridad(p), siguiente(nullptr) {}
+    Nodo(int i, string n, int p) {
+    id = i;
+    nombre = n;
+    prioridad = p;
+    siguiente = NULL;
+}
+
 };
 
-// Implementación básica de Lista Enlazada (Gestor de Procesos)
+// Lista enlazada (gestión de procesos)
 class ListaProcesos {
 private:
     Nodo* cabeza;
     int contadorId;
 
 public:
-    ListaProcesos() : cabeza(nullptr), contadorId(1) {}
+    ListaProcesos() : cabeza(NULL), contadorId(1) {}
 
-    // Insertar proceso (como en el pseudocódigo)
     void insertar(string nombre, int prioridad) {
         Nodo* nuevo = new Nodo(contadorId++, nombre, prioridad);
 
@@ -38,7 +43,6 @@ public:
         }
     }
 
-    // Eliminar proceso por ID
     bool eliminar(int id) {
         if (!cabeza) return false;
 
@@ -64,7 +68,16 @@ public:
         return false;
     }
 
-    // Mostrar todos los procesos
+    Nodo* buscarPorId(int id) {
+        Nodo* actual = cabeza;
+        while (actual) {
+            if (actual->id == id)
+                return actual;
+            actual = actual->siguiente;
+        }
+        return NULL;
+    }
+
     void mostrar() {
         Nodo* actual = cabeza;
         cout << "\n=== LISTA DE PROCESOS ===\n";
@@ -76,19 +89,17 @@ public:
     }
 };
 
-// Implementación básica de Cola de Prioridad (Planificador de CPU)
+// Cola FIFO (CPU)
 class ColaCPU {
 private:
     Nodo* frente;
     Nodo* fin;
 
 public:
-    ColaCPU() : frente(nullptr), fin(nullptr) {}
+    ColaCPU() : frente(NULL), fin(NULL) {}
 
-    // Encolar proceso
     void encolar(Nodo* proc) {
         if (!proc) return;
-
         Nodo* nuevo = new Nodo(proc->id, proc->nombre, proc->prioridad);
 
         if (!frente) {
@@ -99,19 +110,17 @@ public:
         }
     }
 
-    // Desencolar proceso
     Nodo* desencolar() {
-        if (!frente) return nullptr;
+        if (!frente) return NULL;
 
         Nodo* temp = frente;
         frente = frente->siguiente;
-        if (!frente) fin = nullptr;
+        if (!frente) fin = NULL;
 
-        temp->siguiente = nullptr;
+        temp->siguiente = NULL;
         return temp;
     }
 
-    // Mostrar cola
     void mostrar() {
         Nodo* actual = frente;
         cout << "\n=== COLA DE CPU ===\n";
@@ -123,22 +132,63 @@ public:
     }
 };
 
-// Menú básico para demostración
+// Pila (Memoria)
+class PilaMemoria {
+private:
+    Nodo* cima;
+
+public:
+    PilaMemoria() : cima(NULL) {}
+
+    void push(Nodo* proc) {
+        if (!proc) return;
+        Nodo* nuevo = new Nodo(proc->id, proc->nombre, proc->prioridad);
+        nuevo->siguiente = cima;
+        cima = nuevo;
+    }
+
+    Nodo* pop() {
+        if (!cima) return NULL;
+        Nodo* temp = cima;
+        cima = cima->siguiente;
+        temp->siguiente = NULL;
+        return temp;
+    }
+
+    void mostrar() {
+        Nodo* actual = cima;
+        cout << "\n=== PILA DE MEMORIA ===\n";
+        cout << "ID\tNombre\tPrioridad\n";
+        while (actual) {
+            cout << actual->id << "\t" << actual->nombre << "\t" << actual->prioridad << endl;
+            actual = actual->siguiente;
+        }
+    }
+};
+
+// Menú
 void mostrarMenu() {
-    cout << "\n=== MENU DEMOSTRACION ===\n";
+    cout << "\n=== MENU DE GESTION DE PROCESOS ===\n";
     cout << "1. Agregar proceso a lista\n";
     cout << "2. Mostrar lista de procesos\n";
-    cout << "3. Agregar proceso a cola CPU\n";
-    cout << "4. Mostrar cola CPU\n";
-    cout << "5. Salir\n";
+    cout << "3. Encolar proceso a CPU\n";
+    cout << "4. Mostrar cola de CPU\n";
+    cout << "5. Ejecutar proceso (desencolar CPU)\n";
+    cout << "6. Asignar memoria (push)\n";
+    cout << "7. Liberar memoria (pop)\n";
+    cout << "8. Mostrar memoria (pila)\n";
+    cout << "9. Eliminar proceso de la lista\n";
+    cout << "10. Salir\n";
     cout << "Seleccione una opcion: ";
 }
 
+// Programa principal
 int main() {
     ListaProcesos lista;
     ColaCPU cola;
+    PilaMemoria pila;
 
-    int opcion, prioridad;
+    int opcion, prioridad, id;
     string nombre;
 
     do {
@@ -154,28 +204,91 @@ int main() {
                 cin >> prioridad;
                 lista.insertar(nombre, prioridad);
                 break;
+
             case 2:
                 lista.mostrar();
                 break;
+
             case 3:
                 lista.mostrar();
                 cout << "ID del proceso a encolar: ";
-                int id;
                 cin >> id;
-                // En una implementación completa buscaríamos el nodo
-                // Aquí simulamos que encontramos el proceso
-                cout << "Proceso agregado a cola CPU (simulación)\n";
+                {
+                    Nodo* encontrado = lista.buscarPorId(id);
+                    if (encontrado) {
+                        cola.encolar(encontrado);
+                        cout << "Proceso encolado a CPU.\n";
+                    } else {
+                        cout << "Proceso no encontrado.\n";
+                    }
+                }
                 break;
+
             case 4:
                 cola.mostrar();
                 break;
-            case 5:
+
+            case 5: {
+                Nodo* ejecutado = cola.desencolar();
+                if (ejecutado) {
+                    cout << "Proceso ejecutado: " << ejecutado->nombre << " (ID: " << ejecutado->id << ")\n";
+                    delete ejecutado;
+                } else {
+                    cout << "No hay procesos en la CPU.\n";
+                }
+                break;
+            }
+
+            case 6:
+                lista.mostrar();
+                cout << "ID del proceso a asignar en memoria: ";
+                cin >> id;
+                {
+                    Nodo* encontrado = lista.buscarPorId(id);
+                    if (encontrado) {
+                        pila.push(encontrado);
+                        cout << "Proceso asignado en memoria.\n";
+                    } else {
+                        cout << "Proceso no encontrado.\n";
+                    }
+                }
+                break;
+
+            case 7: {
+                Nodo* liberado = pila.pop();
+                if (liberado) {
+                    cout << "Memoria liberada del proceso: " << liberado->nombre << " (ID: " << liberado->id << ")\n";
+                    delete liberado;
+                } else {
+                    cout << "No hay procesos en memoria.\n";
+                }
+                break;
+            }
+
+            case 8:
+                pila.mostrar();
+                break;
+
+            case 9:
+                lista.mostrar();
+                cout << "ID del proceso a eliminar: ";
+                cin >> id;
+                if (lista.eliminar(id)) {
+                    cout << "Proceso eliminado de la lista.\n";
+                } else {
+                    cout << "Proceso no encontrado.\n";
+                }
+                break;
+
+            case 10:
                 cout << "Saliendo...\n";
                 break;
+
             default:
-                cout << "Opcion no valida!\n";
+                cout << "Opcion no valida.\n";
         }
-    } while(opcion != 5);
+
+    } while (opcion != 10);
 
     return 0;
 }
